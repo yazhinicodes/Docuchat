@@ -1,30 +1,25 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:docuchat/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('shows greeting and adds a sent message', (tester) async {
+    // Build the app in a fake test environment (no phone needed)
+    await tester.pumpWidget(const DocuChatApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // The greeting bubble should be on screen
+    expect(find.text("Hi! I'm DocuChat. Ask me anything."), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Type a message and tap the send button
+    await tester.enterText(find.byType(TextField), 'Hello');
+    await tester.tap(find.byIcon(Icons.send_rounded));
+    await tester.pump(); // redraw once after the tap
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // The user's bubble should now appear
+    expect(find.text('Hello'), findsOneWidget);
+
+    // Let the 1-second fake reply and the scroll animation finish
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
   });
 }
