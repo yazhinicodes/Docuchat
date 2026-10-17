@@ -4,8 +4,8 @@ An AI-powered chat app built with Flutter and the Google Gemini API, with a What
 
 ## Screenshots
 
-![Chat screen](screenshots/chat.png)
-![Error handling](screenshots/error.png)
+![Chat screen](screenshots/chat.jpeg)
+![Error handling](screenshots/error.jpeg)
 
 ## Features
 
