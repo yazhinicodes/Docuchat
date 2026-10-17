@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/message.dart';
 import '../widgets/message_bubble.dart';
+import '../services/gemini_service.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -20,6 +21,7 @@ class _ChatScreenState extends State<ChatScreen> {
   ];
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final GeminiService _gemini = GeminiService();
   bool _isTyping = false;
 
   @override
@@ -43,33 +45,40 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Future<void> _sendMessage() async {
-    final text = _controller.text.trim();
-    if (text.isEmpty || _isTyping) return;
+   Future<void> _sendMessage() async {
+     final text = _controller.text.trim();
+     if (text.isEmpty || _isTyping) return;
 
-    // 1. Add the user's message and show the typing indicator
-    setState(() {
-      _messages.add(Message(text: text, isUser: true, time: DateTime.now()));
-      _isTyping = true;
-    });
-    _controller.clear();
-    _scrollToBottom();
+     // 1. Add the user's message and show the typing indicator
+     setState(() {
+       _messages.add(Message(text: text, isUser: true, time: DateTime.now()));
+       _isTyping = true;
+     });
+     _controller.clear();
+     _scrollToBottom();
 
-    // 2. FAKE reply for now (tomorrow: real Gemini call here)
-    await Future.delayed(const Duration(seconds: 1));
-    if (!mounted) return; // screen may have closed while waiting
-
-    // 3. Add the reply and hide the typing indicator
-    setState(() {
-      _messages.add(Message(
-        text: 'You asked: "$text"\n\n(Gemini integration coming soon.)',
+     // 2. Ask Gemini (the service always throws a friendly GeminiException)
+     Message reply;
+     try {
+       final answer = await _gemini.sendChat(_messages);
+       reply = Message(text: answer, isUser: false, time: DateTime.now());
+     } on GeminiException catch (e) {
+       reply = Message(
+        text: e.message,
         isUser: false,
         time: DateTime.now(),
-      ));
-      _isTyping = false;
-    });
-    _scrollToBottom();
-  }
+        isError: true,
+       );
+     }
+     if (!mounted) return; // screen may have closed while waiting
+
+     // 3. Show the reply and hide the typing indicator
+     setState(() {
+       _messages.add(reply);
+       _isTyping = false;
+     });
+     _scrollToBottom();
+   }
 
   @override
   Widget build(BuildContext context) {
