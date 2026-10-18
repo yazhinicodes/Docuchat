@@ -3,6 +3,12 @@ import '../models/message.dart';
 import '../widgets/message_bubble.dart';
 import '../services/gemini_service.dart';
 
+Message _greetingMessage() => Message(
+      text: "Hi! I'm DocuChat. Ask me anything.",
+      isUser: false,
+      time: DateTime.now(),
+    );
+
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
 
@@ -12,13 +18,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   // The app's STATE: the list of messages and whether the AI is "typing"
-  final List<Message> _messages = [
-    Message(
-      text: "Hi! I'm DocuChat. Ask me anything.",
-      isUser: false,
-      time: DateTime.now(),
-    ),
-  ];
+  final List<Message> _messages = [_greetingMessage()];
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GeminiService _gemini = GeminiService();
@@ -80,6 +80,15 @@ class _ChatScreenState extends State<ChatScreen> {
      _scrollToBottom();
    }
 
+  void _clearChat() {
+    if (_isTyping) return; // don't clear while waiting for a reply
+    setState(() {
+      _messages
+        ..clear()
+        ..add(_greetingMessage());
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,6 +115,13 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Clear chat',
+            onPressed: _clearChat,
+          ),
+        ],
       ),
       body: Column(
         children: [
